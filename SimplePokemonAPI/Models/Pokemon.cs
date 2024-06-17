@@ -5,7 +5,7 @@ public class Pokemon
     public string ID { get; set; }
     public string Name { get; set; }
     public StatBlock Stats { get; set; }
-    public List<(Ability Ability, Boolean IsHidden)> Abilities { get; set; }
+    public List<(Ability Ability, bool IsHidden)> Abilities { get; set; }
     public List<PokemonAttack> Learnset { get; set; }
 }
 

@@ -29,7 +29,11 @@ public class DamageRelations
     public int ProzentualMultiplier { get; set; }
 }
 
-public enum EffectType{ATTACK, ABILTY}
+public enum EffectType
+{
+    ATTACK,
+    ABILTY
+}
 
 public class Effect
 {

@@ -12,9 +12,9 @@ public class PokemonAbility
     public string PokemonID { get; set; }
     public string AbilityID { get; set; }
     public int Slot { get; set; }
-    public Boolean IsHidden { get; set; }
-    
+    public bool IsHidden { get; set; }
 }
+
 public class StatBlock
 {
     public int HP { get; set; }

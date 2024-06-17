@@ -23,7 +23,11 @@ public class ElementalType
     public List<(ElementalType DefendingType, int ProcentualMultiplier)> DamageRelations { get; set; }
 }
 
-public enum EffectType{ATTACK, ABILTY}
+public enum EffectType
+{
+    ATTACK,
+    ABILTY
+}
 
 public class Effect
 {
