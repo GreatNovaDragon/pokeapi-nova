@@ -72,8 +72,6 @@ public class DbContext
 
     public static Database ReadDatabase()
     {
-        var DB = new Database();
-
         List<Models.Effect> effects = [];
         using (var reader = new StreamReader("effect.csv"))
         using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
@@ -84,14 +82,13 @@ public class DbContext
             {
                 var record = csv.GetRecord<Effect>();
                 var effect = new Models.Effect();
-                effect.ID = record.ID;
+                effect.ID = record?.ID;
                 effect.Description = record.Description;
                 effect.Type = (Models.EffectType)Enum.Parse(typeof(Models.EffectType), record.Type);
                 effects.Add(effect);
             }
         }
 
-        DB.Effects = effects;
 
         List<Models.Ability> abilities = [];
         using (var reader = new StreamReader("ability.csv"))
@@ -105,13 +102,13 @@ public class DbContext
                 var ability = new Models.Ability();
                 ability.ID = record.ID;
                 ability.Name = record.Name;
-                ability.Effect = DB.Effects.FirstOrDefault(e => e.ID == record.EffectID) ??
+                ability.Effect = effects.FirstOrDefault(e => e.ID == record.EffectID) ??
                                  throw new InvalidOperationException();
                 abilities.Add(ability);
             }
         }
 
-        DB.Abilities = abilities;
-        return DB;
+        // TODO: Add them to the constructor
+        return new Database();
     }
 }

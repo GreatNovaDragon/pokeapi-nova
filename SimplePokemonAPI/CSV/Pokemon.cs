@@ -4,6 +4,7 @@ public class Pokemon
 {
     public string ID { get; set; }
     public string Name { get; set; }
+    public string FormName { get; set; }
     public StatBlock Stats { get; set; }
 }
 
