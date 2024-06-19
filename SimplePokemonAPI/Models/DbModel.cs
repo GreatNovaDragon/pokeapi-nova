@@ -1,5 +1,6 @@
 using PokeApiNet;
 using SimplePokemonAPI.FileModels;
+using Type = PokeApiNet.Type;
 
 namespace SimplePokemonAPI.Models;
 
@@ -90,20 +91,21 @@ public class Database(
         return new Database(Pokemon, Moves, Abilities, Types, DamageClasses, Effects);
     }
 
-    public async Task<Database> GetDatabaseFromPokeAPIWithoutEffects()
+    public async Task<Database> GetDatabaseFromPokeAPIWithoutEffects(string lang)
     {
         var apiclient = new PokeApiClient();
 
         var Types = new List<ElementalType>();
 
-        await foreach (var typeRessource in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Type>())
+        await foreach (var typeRessource in apiclient.GetAllNamedResourcesAsync<Type>())
         {
             var ApiType = await apiclient.GetResourceAsync(typeRessource);
+            var Name = ApiType.Names.FirstOrDefault(n => n.Language.Name == lang);
             Types.Add(
                 new ElementalType
                 {
                     ID = ApiType.Name,
-                    Name = ApiType.Names.FirstOrDefault(n => n.Language.Name == "en").Name,
+                    Name = Name == null ? "" : Name.Name,
                     DamageRelations = []
                 }
             );
@@ -111,7 +113,7 @@ public class Database(
 
         foreach (var Type in Types)
         {
-            var ApiType = await apiclient.GetResourceAsync<PokeApiNet.Type>(Type.ID);
+            var ApiType = await apiclient.GetResourceAsync<Type>(Type.ID);
             foreach (var dt in ApiType.DamageRelations.DoubleDamageTo)
                 Type.DamageRelations.Add((Types.FirstOrDefault(t => t.ID == dt.Name), 200));
 
@@ -138,7 +140,7 @@ public class Database(
                 new DamageClass
                 {
                     ID = API_damageclass.Name,
-                    Name = API_damageclass.Names.FirstOrDefault(n => n.Language.Name == "en").Name
+                    Name = API_damageclass.Names.FirstOrDefault(n => n.Language.Name == lang).Name
                 });
         }
 
@@ -150,7 +152,7 @@ public class Database(
             var API_moves = await apiclient.GetResourceAsync(m);
 
             var ID = API_moves.Name;
-            var Name = API_moves.Names.FirstOrDefault(n => n.Language.Name == "en").Name;
+            var Name = API_moves.Names.FirstOrDefault(n => n.Language.Name == lang);
             var Power = API_moves.Power;
             var PP = API_moves.Pp;
             var DamageClass = DamageClasses.FirstOrDefault(d => d.Name == API_moves.DamageClass.Name);
@@ -159,7 +161,7 @@ public class Database(
             Moves.Add(new Attack
             {
                 ID = ID,
-                Name = Name,
+                Name = Name == null ? "" : Name.Name,
                 Power = Power,
                 PP = PP,
                 DamageClass = DamageClass,
@@ -172,10 +174,11 @@ public class Database(
         await foreach (var a in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Ability>())
         {
             var API_abilities = await apiclient.GetResourceAsync(a);
+            var Name = API_abilities.Names.FirstOrDefault(n => n.Language.Name == lang);
             Abilities.Add(new Ability
             {
                 ID = API_abilities.Name,
-                Name = API_abilities.Names.FirstOrDefault(n => n.Language.Name == "en").Name,
+                Name = Name == null ? "" : Name.Name,
                 Effect = null
             });
         }
@@ -187,11 +190,18 @@ public class Database(
             var API_pokemon = await apiclient.GetResourceAsync(p);
             var API_Species = await apiclient.GetResourceAsync(API_pokemon.Species);
             var API_Form = await apiclient.GetResourceAsync(API_pokemon.Forms[0]);
+            var Name = API_Species.Names.FirstOrDefault(n => n.Language.Name == lang);
+            var FormName = API_Form.Names.FirstOrDefault(n => n.Language.Name == lang);
             var mon = new Pokemon
             {
                 ID = API_pokemon.Name,
-                Name = API_Species.Names.FirstOrDefault(n => n.Language.Name == "en").Name,
-                FormName = API_Form.FormNames.FirstOrDefault(n => n.Language.Name == "en").Name,
+                Name = Name == null
+                    ? ""
+                    : Name.Name,
+
+                FormName = FormName == null
+                    ? ""
+                    : FormName.Name,
                 Stats = new StatBlock
                 {
                     HP = API_pokemon.Stats[0].BaseStat,
