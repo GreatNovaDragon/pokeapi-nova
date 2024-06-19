@@ -1,12 +1,12 @@
 using PokeApiNet;
-using SimplePokemonAPI.FileModels;
+using SimplePokemonAPI.Serializers;
 using Type = PokeApiNet.Type;
 
 namespace SimplePokemonAPI.Models;
 
 public class Knowledgebase(
     List<Pokemon> pokemon,
-    List<Move> attacks,
+    List<Move> moves,
     List<Ability> abilities,
     List<ElementalType> types,
     List<DamageClass> damageClasses,
@@ -19,14 +19,14 @@ public class Knowledgebase(
 
 
     public List<Pokemon> Pokemon { get; set; } = pokemon;
-    public List<Move> Attacks { get; set; } = attacks;
+    public List<Move> Moves { get; set; } = moves;
     public List<Ability> Abilities { get; set; } = abilities;
     public List<ElementalType> Types { get; set; } = types;
     public List<DamageClass> DamageClasses { get; set; } = damageClasses;
     public List<Effect> MoveEffects { get; set; } = moveeffects;
     public List<Effect> AbilityEffects { get; set; } = abilityeffects;
 
-    public Knowledgebase GetKnowledebaseFromDatabase(DatabaseModel filemodel)
+    public Knowledgebase GetKnowledebaseFromDatabase(Serializer filemodel)
     {
         var Types = filemodel.Types.Select(t => new ElementalType { ID = t.ID, Name = t.Name, DamageRelations = [] })
             .ToList();
@@ -39,19 +39,20 @@ public class Knowledgebase(
 
         var MoveEffects = filemodel.MoveEffects.Select(effect => new Effect
         {
-            ID = effect.ID, Description = effect.Description,
+            ID = effect.ID, Description = effect.Description
         }).ToList();
 
         var Moves = filemodel.Moves.Select(attack => new Move
         {
             ID = attack.ID, Name = attack.Name, Effect = MoveEffects.FirstOrDefault(e => e.ID == attack.EffectID),
-            Power = attack.Power, PP = attack.PP, Accuracy = attack.Accuracy, Priority = attack.Priority, EffectChance = attack.EffectChance,
+            Power = attack.Power, PP = attack.PP, Accuracy = attack.Accuracy, Priority = attack.Priority,
+            EffectChance = attack.EffectChance,
             DamageClass = DamageClasses.FirstOrDefault(dc => dc.ID == attack.DamageClassID)
         }).ToList();
-        
+
         var AbilityEffects = filemodel.AbilityEffects.Select(effect => new Effect
         {
-            ID = effect.ID, Description = effect.Description,
+            ID = effect.ID, Description = effect.Description
         }).ToList();
 
 
@@ -69,7 +70,7 @@ public class Knowledgebase(
             foreach (var ls in filemodel.Learnsets.FindAll(ls => ls.PokemonID == pkmn.ID))
                 Learnset.Add(new PokemonAttack
                 {
-                    Move = Attacks.FirstOrDefault(e => e.ID == ls.AttackID)!,
+                    Move = this.Moves.FirstOrDefault(e => e.ID == ls.AttackID)!,
                     Trigger = ls.Trigger,
                     TriggerDetails = ls.TriggerDetails
                 });
@@ -91,6 +92,16 @@ public class Knowledgebase(
                     Attack = pkmn.Stats.Attack, SpecialAttack = pkmn.Stats.SpecialAttack, Defense = pkmn.Stats.Defense,
                     SpecialDefense = pkmn.Stats.SpecialDefense, Speed = pkmn.Stats.Speed, HP = pkmn.Stats.HP
                 }
+            });
+        }
+
+        foreach (var mon in filemodel.VisualOnlyPokemon)
+        {
+            var basedOn = Pokemon.FirstOrDefault(m => m.ID == mon.basedOnPokemonID);
+            Pokemon.Add(new Pokemon
+            {
+                ID = mon.ID, Name = mon.Name, FormName = mon.FormName, Abilities = basedOn.Abilities,
+                Stats = basedOn.Stats, Learnset = basedOn.Learnset
             });
         }
 
@@ -155,25 +166,46 @@ public class Knowledgebase(
         await foreach (var m in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Move>())
         {
             Console.WriteLine($"{m.Name}  {m.Url}");
-            var API_moves = await apiclient.GetResourceAsync(m);
 
-            var ID = API_moves.Name;
-            var Name = API_moves.Names.FirstOrDefault(n => n.Language.Name == lang);
-            var Power = API_moves.Power;
-            var PP = API_moves.Pp;
-            var DamageClass = DamageClasses.FirstOrDefault(d => d.Name == API_moves.DamageClass.Name);
+            var ID = m.Name;
+            var Name = m.Name;
+            int? Power = 999;
+            int? PP = 999;
+            var DamageClass = DamageClasses.FirstOrDefault();
+            int? Accuracy = 999;
+            int? Priority = 999;
+            int? EffectChance = 999;
+
+            try
+            {
+                var API_moves = await apiclient.GetResourceAsync(m);
+                Name = API_moves.Names.FirstOrDefault(n => n.Language.Name == lang) == null
+                    ? ""
+                    : API_moves.Names.FirstOrDefault(n => n.Language.Name == lang).Name;
+                Power = API_moves.Power;
+                PP = API_moves.Pp;
+                DamageClass = DamageClasses.FirstOrDefault(d => d.Name == API_moves.DamageClass.Name);
+                Accuracy = API_moves.Accuracy;
+                Priority = API_moves.Priority;
+                EffectChance = API_moves.EffectChance;
+            }
+            catch (HttpRequestException)
+            {
+            }
+
+
             Effect? Effect = null;
 
             Moves.Add(new Move
             {
                 ID = ID,
-                Name = Name == null ? "" : Name.Name,
+                Name = Name,
                 Power = Power,
                 PP = PP,
-                Accuracy = API_moves.Accuracy,
-                Priority = API_moves.Priority,
+                Accuracy = Accuracy,
+                Priority = Priority,
                 DamageClass = DamageClass,
-                EffectChance = API_moves.EffectChance,
+                EffectChance = EffectChance,
                 Effect = Effect
             });
         }
@@ -182,6 +214,8 @@ public class Knowledgebase(
 
         await foreach (var a in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Ability>())
         {
+            Console.WriteLine($"{a.Name}  {a.Url}");
+
             var API_abilities = await apiclient.GetResourceAsync(a);
             var Name = API_abilities.Names.FirstOrDefault(n => n.Language.Name == lang);
             Abilities.Add(new Ability
@@ -196,6 +230,8 @@ public class Knowledgebase(
 
         await foreach (var p in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Pokemon>())
         {
+            Console.WriteLine($"{p.Name}  {p.Url}");
+
             var API_pokemon = await apiclient.GetResourceAsync(p);
             var API_Species = await apiclient.GetResourceAsync(API_pokemon.Species);
             var API_Form = await apiclient.GetResourceAsync(API_pokemon.Forms[0]);
@@ -254,6 +290,7 @@ public class Knowledgebase(
             Pokemon.Add(mon);
         }
 
-        return new Knowledgebase(Pokemon, Moves, Abilities, Types, DamageClasses, new List<Effect>(), new List<Effect>());
+        return new Knowledgebase(Pokemon, Moves, Abilities, Types, DamageClasses, new List<Effect>(),
+            new List<Effect>());
     }
 }

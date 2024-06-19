@@ -1,4 +1,4 @@
-namespace SimplePokemonAPI.FileModels;
+namespace SimplePokemonAPI.Serializers;
 
 public class Move
 {
@@ -6,12 +6,12 @@ public class Move
     public string Name { get; set; }
     public int? Power { get; set; }
     public int? PP { get; set; }
-    
+
     public int? Accuracy { get; set; }
     public int? Priority { get; set; }
 
     public string DamageClassID { get; set; }
-    
+
     public int? EffectChance { get; set; }
 
     public string EffectID { get; set; }
@@ -29,14 +29,12 @@ public class ElementalType
     public string Name { get; set; }
 }
 
-public class DamageRelations
+public class DamageRelation
 {
     public string AttackerID { get; set; }
     public string DefenderID { get; set; }
     public int ProzentualMultiplier { get; set; }
 }
-
-
 
 public class Effect
 {

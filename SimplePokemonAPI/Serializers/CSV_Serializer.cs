@@ -1,23 +1,25 @@
 using System.Globalization;
 using CsvHelper;
 
-namespace SimplePokemonAPI.FileModels;
+namespace SimplePokemonAPI.Serializers;
 
-public class CSVDatabase(string dbPath) : DatabaseModel
+public class CSV_Serializer(string dbPath) : Serializer
 {
+    private readonly string _abilityEffectPath = Path.Combine(dbPath, "moves/effect.csv");
     private readonly string _abilityPath = Path.Combine(dbPath, "abilities/ability.csv");
-    private readonly string _movePath = Path.Combine(dbPath, "moves/moves.csv");
     private readonly string _damageClassPath = Path.Combine(dbPath, "moves/damage_class.csv");
     private readonly string _damageRelationsPath = Path.Combine(dbPath, "types/damage_relations.csv");
-    private readonly string _moveEffectPath = Path.Combine(dbPath, "abilities/effect.csv");
-    private readonly string _abilityEffectPath = Path.Combine(dbPath, "moves/effect.csv");
 
     private readonly string _learnsetPath = Path.Combine(dbPath, "pokemon/learnset.csv");
+    private readonly string _moveEffectPath = Path.Combine(dbPath, "abilities/effect.csv");
+    private readonly string _movePath = Path.Combine(dbPath, "moves/moves.csv");
     private readonly string _pokemonAbilityPath = Path.Combine(dbPath, "pokemon/pokemon_ability.csv");
     private readonly string _pokemonPath = Path.Combine(dbPath, "pokemon/pokemon.csv");
-    private readonly string _typePath = Path.Combine(dbPath, "types/type.csv");
 
-    public CSVDatabase() : this("./database/")
+    private readonly string _typePath = Path.Combine(dbPath, "types/type.csv");
+    private readonly string _visualonlypokemonPath = Path.Combine(dbPath, "pokemon/visualonly.csv");
+
+    public CSV_Serializer() : this("./database/")
     {
     }
 
@@ -28,6 +30,12 @@ public class CSVDatabase(string dbPath) : DatabaseModel
         using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
         {
             Pokemon = csv.GetRecords<Pokemon>().ToList();
+        }
+
+        using (var writer = new StreamReader(_visualonlypokemonPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            VisualOnlyPokemon = csv.GetRecords<VisualOnlyPokemon>().ToList();
         }
 
         using (var writer = new StreamReader(_pokemonAbilityPath))
@@ -48,7 +56,7 @@ public class CSVDatabase(string dbPath) : DatabaseModel
         {
             AbilityEffects = csv.GetRecords<Effect>().ToList();
         }
-        
+
         using (var writer = new StreamReader(_moveEffectPath))
         using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
         {
@@ -64,7 +72,7 @@ public class CSVDatabase(string dbPath) : DatabaseModel
         using (var writer = new StreamReader(_damageRelationsPath))
         using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
         {
-            DamageRelations = csv.GetRecords<DamageRelations>().ToList();
+            DamageRelations = csv.GetRecords<DamageRelation>().ToList();
         }
 
         using (var writer = new StreamReader(_damageClassPath))
@@ -93,11 +101,17 @@ public class CSVDatabase(string dbPath) : DatabaseModel
         Directory.CreateDirectory(Path.Combine(dbPath, "abilities"));
         Directory.CreateDirectory(Path.Combine(dbPath, "pokemon"));
         Directory.CreateDirectory(Path.Combine(dbPath, "types"));
-        
+
         using (var writer = new StreamWriter(_pokemonPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
             csv.WriteRecords(Pokemon);
+        }
+
+        using (var writer = new StreamWriter(_visualonlypokemonPath))
+        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+        {
+            csv.WriteRecords(VisualOnlyPokemon);
         }
 
         using (var writer = new StreamWriter(_pokemonAbilityPath))
@@ -118,7 +132,7 @@ public class CSVDatabase(string dbPath) : DatabaseModel
         {
             csv.WriteRecords(MoveEffects);
         }
-        
+
         using (var writer = new StreamWriter(_abilityEffectPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {

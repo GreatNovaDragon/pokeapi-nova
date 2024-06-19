@@ -1,4 +1,4 @@
-namespace SimplePokemonAPI.FileModels;
+namespace SimplePokemonAPI.Serializers;
 
 public class Pokemon
 {
@@ -6,6 +6,15 @@ public class Pokemon
     public string Name { get; set; }
     public string FormName { get; set; }
     public StatBlock Stats { get; set; }
+}
+
+public class VisualOnlyPokemon
+{
+    public string ID { get; set; }
+    public string Name { get; set; }
+    public string FormName { get; set; }
+
+    public string basedOnPokemonID { get; set; }
 }
 
 public class PokemonAbility
