@@ -2,7 +2,7 @@ using SimplePokemonAPI.Models;
 
 namespace SimplePokemonAPI.FileModels;
 
-public class FileModel
+public abstract class FileModel
 {
     protected FileModel()
     {
@@ -17,20 +17,12 @@ public class FileModel
         Learnsets = [];
     }
 
-    public virtual void Read()
-    {
-        throw new NotImplementedException();
-    }
+    public abstract void Read();
 
-    public virtual void Write()
-    {
-        throw new NotImplementedException();
-    }
+    public abstract void Write();
 
-    public virtual void PrepareEmptyDatabase()
-    {
-        throw new NotImplementedException();
-    }
+    public abstract void PrepareEmptyDatabase();
+  
 
     public void InsertFromDBModel(Database db)
     {
