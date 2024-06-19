@@ -29,7 +29,7 @@ public class Ability
 
 public class PokemonAttack
 {
-    public Attack Attack { get; set; }
+    public Move Move { get; set; }
     public string Trigger { get; set; }
     public string TriggerDetails { get; set; }
 }

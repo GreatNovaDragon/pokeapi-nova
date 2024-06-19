@@ -3,38 +3,24 @@ using CsvHelper;
 
 namespace SimplePokemonAPI.FileModels;
 
-public class CSV : FileModel
+public class CSVDatabase(string dbPath) : DatabaseModel
 {
-    private readonly string _abilityPath;
-    private readonly string _attackPath;
-    private readonly string _damageClassPath;
-    private readonly string _damageRelationsPath;
-    private readonly string _dbPath;
-    private readonly string _effectPath;
-    private readonly string _learnsetPath;
-    private readonly string _pokemonAbilityPath;
-    private readonly string _pokemonPath;
-    private readonly string _typePath;
+    private readonly string _abilityPath = Path.Combine(dbPath, "abilities/ability.csv");
+    private readonly string _movePath = Path.Combine(dbPath, "moves/moves.csv");
+    private readonly string _damageClassPath = Path.Combine(dbPath, "moves/damage_class.csv");
+    private readonly string _damageRelationsPath = Path.Combine(dbPath, "types/damage_relations.csv");
+    private readonly string _moveEffectPath = Path.Combine(dbPath, "abilities/effect.csv");
+    private readonly string _abilityEffectPath = Path.Combine(dbPath, "moves/effect.csv");
 
-    public CSV() : this("./database")
+    private readonly string _learnsetPath = Path.Combine(dbPath, "pokemon/learnset.csv");
+    private readonly string _pokemonAbilityPath = Path.Combine(dbPath, "pokemon/pokemon_ability.csv");
+    private readonly string _pokemonPath = Path.Combine(dbPath, "pokemon/pokemon.csv");
+    private readonly string _typePath = Path.Combine(dbPath, "types/type.csv");
+
+    public CSVDatabase() : this("./database/")
     {
-        Console.WriteLine("Creating DB at ./database");
     }
 
-
-    private CSV(string dbPath)
-    {
-        _dbPath = dbPath;
-        _pokemonPath = Path.Combine(dbPath, "pokemon.csv");
-        _pokemonAbilityPath = Path.Combine(dbPath, "pokemon_ability.csv");
-        _abilityPath = Path.Combine(dbPath, "abilityset.csv");
-        _effectPath = Path.Combine(dbPath, "effect.csv");
-        _typePath = Path.Combine(dbPath, "type.csv");
-        _damageRelationsPath = Path.Combine(dbPath, "damage_relations.csv");
-        _damageClassPath = Path.Combine(dbPath, "damage_class.csv");
-        _attackPath = Path.Combine(dbPath, "attack.csv");
-        _learnsetPath = Path.Combine(dbPath, "learnset.csv");
-    }
 
     public override void Read()
     {
@@ -57,10 +43,16 @@ public class CSV : FileModel
             Abilities = csv.GetRecords<Ability>().ToList();
         }
 
-        using (var writer = new StreamReader(_effectPath))
+        using (var writer = new StreamReader(_abilityEffectPath))
         using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
         {
-            Effects = csv.GetRecords<Effect>().ToList();
+            AbilityEffects = csv.GetRecords<Effect>().ToList();
+        }
+        
+        using (var writer = new StreamReader(_moveEffectPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            MoveEffects = csv.GetRecords<Effect>().ToList();
         }
 
         using (var writer = new StreamReader(_typePath))
@@ -81,10 +73,10 @@ public class CSV : FileModel
             DamageClasses = csv.GetRecords<DamageClass>().ToList();
         }
 
-        using (var writer = new StreamReader(_attackPath))
+        using (var writer = new StreamReader(_movePath))
         using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
         {
-            Attacks = csv.GetRecords<Attack>().ToList();
+            Moves = csv.GetRecords<Move>().ToList();
         }
 
         using (var writer = new StreamReader(_learnsetPath))
@@ -96,8 +88,12 @@ public class CSV : FileModel
 
     public override void Write()
     {
-        Directory.CreateDirectory(_dbPath);
-
+        Directory.CreateDirectory(dbPath);
+        Directory.CreateDirectory(Path.Combine(dbPath, "moves"));
+        Directory.CreateDirectory(Path.Combine(dbPath, "abilities"));
+        Directory.CreateDirectory(Path.Combine(dbPath, "pokemon"));
+        Directory.CreateDirectory(Path.Combine(dbPath, "types"));
+        
         using (var writer = new StreamWriter(_pokemonPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
@@ -117,10 +113,16 @@ public class CSV : FileModel
             csv.WriteRecords(Abilities);
         }
 
-        using (var writer = new StreamWriter(_effectPath))
+        using (var writer = new StreamWriter(_moveEffectPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteRecords(Effects);
+            csv.WriteRecords(MoveEffects);
+        }
+        
+        using (var writer = new StreamWriter(_abilityEffectPath))
+        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+        {
+            csv.WriteRecords(AbilityEffects);
         }
 
         using (var writer = new StreamWriter(_typePath))
@@ -141,10 +143,10 @@ public class CSV : FileModel
             csv.WriteRecords(DamageClasses);
         }
 
-        using (var writer = new StreamWriter(_attackPath))
+        using (var writer = new StreamWriter(_movePath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteRecords(Attacks);
+            csv.WriteRecords(Moves);
         }
 
         using (var writer = new StreamWriter(_learnsetPath))
@@ -154,7 +156,7 @@ public class CSV : FileModel
         }
     }
 
-    public override void PrepareEmptyDatabase()
+    public override void PrepareEmpty()
     {
         Write();
     }

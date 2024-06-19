@@ -4,27 +4,29 @@ using Type = PokeApiNet.Type;
 
 namespace SimplePokemonAPI.Models;
 
-public class Database(
+public class Knowledgebase(
     List<Pokemon> pokemon,
-    List<Attack> attacks,
+    List<Move> attacks,
     List<Ability> abilities,
     List<ElementalType> types,
     List<DamageClass> damageClasses,
-    List<Effect> effects)
+    List<Effect> moveeffects,
+    List<Effect> abilityeffects)
 {
-    public Database() : this([], [], [], [], [], [])
+    public Knowledgebase() : this([], [], [], [], [], [], [])
     {
     }
 
 
     public List<Pokemon> Pokemon { get; set; } = pokemon;
-    public List<Attack> Attacks { get; set; } = attacks;
+    public List<Move> Attacks { get; set; } = attacks;
     public List<Ability> Abilities { get; set; } = abilities;
     public List<ElementalType> Types { get; set; } = types;
     public List<DamageClass> DamageClasses { get; set; } = damageClasses;
-    public List<Effect> Effects { get; set; } = effects;
+    public List<Effect> MoveEffects { get; set; } = moveeffects;
+    public List<Effect> AbilityEffects { get; set; } = abilityeffects;
 
-    public Database GetDatabaseFromFilemodel(FileModel filemodel)
+    public Knowledgebase GetKnowledebaseFromDatabase(DatabaseModel filemodel)
     {
         var Types = filemodel.Types.Select(t => new ElementalType { ID = t.ID, Name = t.Name, DamageRelations = [] })
             .ToList();
@@ -35,23 +37,27 @@ public class Database(
 
         var DamageClasses = filemodel.DamageClasses.Select(d => new DamageClass { ID = d.ID, Name = d.Name }).ToList();
 
-        var Effects = filemodel.Effects.Select(effect => new Effect
+        var MoveEffects = filemodel.MoveEffects.Select(effect => new Effect
         {
             ID = effect.ID, Description = effect.Description,
-            Type = (EffectType)Enum.Parse(typeof(EffectType), effect.Type)
         }).ToList();
 
-        var Moves = filemodel.Attacks.Select(attack => new Attack
+        var Moves = filemodel.Moves.Select(attack => new Move
         {
-            ID = attack.ID, Name = attack.Name, Effect = Effects.FirstOrDefault(e => e.ID == attack.EffectID),
-            Power = attack.Power, PP = attack.PP,
+            ID = attack.ID, Name = attack.Name, Effect = MoveEffects.FirstOrDefault(e => e.ID == attack.EffectID),
+            Power = attack.Power, PP = attack.PP, Accuracy = attack.Accuracy, Priority = attack.Priority, EffectChance = attack.EffectChance,
             DamageClass = DamageClasses.FirstOrDefault(dc => dc.ID == attack.DamageClassID)
+        }).ToList();
+        
+        var AbilityEffects = filemodel.AbilityEffects.Select(effect => new Effect
+        {
+            ID = effect.ID, Description = effect.Description,
         }).ToList();
 
 
         var Abilities = filemodel.Abilities.Select(ability => new Ability
         {
-            ID = ability.ID, Name = ability.Name, Effect = Effects.FirstOrDefault(e => e.ID == ability.EffectID)
+            ID = ability.ID, Name = ability.Name, Effect = AbilityEffects.FirstOrDefault(e => e.ID == ability.EffectID)
         }).ToList();
 
 
@@ -63,7 +69,7 @@ public class Database(
             foreach (var ls in filemodel.Learnsets.FindAll(ls => ls.PokemonID == pkmn.ID))
                 Learnset.Add(new PokemonAttack
                 {
-                    Attack = Attacks.FirstOrDefault(e => e.ID == ls.AttackID)!,
+                    Move = Attacks.FirstOrDefault(e => e.ID == ls.AttackID)!,
                     Trigger = ls.Trigger,
                     TriggerDetails = ls.TriggerDetails
                 });
@@ -88,10 +94,10 @@ public class Database(
             });
         }
 
-        return new Database(Pokemon, Moves, Abilities, Types, DamageClasses, Effects);
+        return new Knowledgebase(Pokemon, Moves, Abilities, Types, DamageClasses, MoveEffects, AbilityEffects);
     }
 
-    public async Task<Database> GetDatabaseFromPokeAPIWithoutEffects(string lang)
+    public async Task<Knowledgebase> GetDatabaseFromPokeAPIWithoutEffects(string lang)
     {
         var apiclient = new PokeApiClient();
 
@@ -144,9 +150,9 @@ public class Database(
                 });
         }
 
-        var Moves = new List<Attack>();
+        var Moves = new List<Move>();
 
-        await foreach (var m in apiclient.GetAllNamedResourcesAsync<Move>())
+        await foreach (var m in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Move>())
         {
             Console.WriteLine($"{m.Name}  {m.Url}");
             var API_moves = await apiclient.GetResourceAsync(m);
@@ -158,13 +164,16 @@ public class Database(
             var DamageClass = DamageClasses.FirstOrDefault(d => d.Name == API_moves.DamageClass.Name);
             Effect? Effect = null;
 
-            Moves.Add(new Attack
+            Moves.Add(new Move
             {
                 ID = ID,
                 Name = Name == null ? "" : Name.Name,
                 Power = Power,
                 PP = PP,
+                Accuracy = API_moves.Accuracy,
+                Priority = API_moves.Priority,
                 DamageClass = DamageClass,
+                EffectChance = API_moves.EffectChance,
                 Effect = Effect
             });
         }
@@ -235,7 +244,7 @@ public class Database(
 
                 Learnset.Add(new PokemonAttack
                 {
-                    Attack = move,
+                    Move = move,
                     Trigger = how,
                     TriggerDetails = details
                 });
@@ -245,6 +254,6 @@ public class Database(
             Pokemon.Add(mon);
         }
 
-        return new Database(Pokemon, Moves, Abilities, Types, DamageClasses, new List<Effect>());
+        return new Knowledgebase(Pokemon, Moves, Abilities, Types, DamageClasses, new List<Effect>(), new List<Effect>());
     }
 }
