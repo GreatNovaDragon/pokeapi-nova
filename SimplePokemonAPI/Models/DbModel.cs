@@ -28,10 +28,75 @@ public class Database(
     {
         var csvdb = new CsvDatabase(path);
 
-        throw new NotImplementedException();
+        var Types = csvdb.Types.Select(t => new ElementalType { ID = t.ID, Name = t.Name, DamageRelations = [] })
+            .ToList();
 
-        // TODO: Add them to the constructor, and like, do everything else too
-        return new Database();
+        foreach (var type in Types)
+        {
+            foreach (var dr in csvdb.DamageRelations.Where(e => e.DefenderID == type.ID))
+            {
+                type.DamageRelations.Add((Types.FirstOrDefault(e => e.ID == dr.DefenderID), dr.ProzentualMultiplier)!);
+            }
+        }
+
+        var DamageClasses = csvdb.DamageClasses.Select(d => new DamageClass { ID = d.ID, Name = d.Name, }).ToList();
+
+        var Effects = csvdb.Effects.Select(effect => new Effect
+        {
+            ID = effect.ID, Description = effect.Description,
+            Type = (EffectType)Enum.Parse(typeof(EffectType), effect.Type),
+        }).ToList();
+
+        var Moves = csvdb.Attacks.Select(attack => new Attack
+        {
+            ID = attack.ID, Name = attack.Name, Effect = Effects.FirstOrDefault(e => e.ID == attack.EffectID),
+            Power = attack.Power, PP = attack.PP,
+            DamageClass = DamageClasses.FirstOrDefault(dc => dc.ID == attack.DamageClassID)
+        }).ToList();
+
+
+        var Abilities = csvdb.Abilities.Select(ability => new Ability
+        {
+            ID = ability.ID, Name = ability.Name, Effect = Effects.FirstOrDefault(e => e.ID == ability.EffectID),
+        }).ToList();
+
+
+        var Pokemon = new List<Pokemon>();
+
+        foreach (var pkmn in csvdb.Pokemon)
+        {
+            var Learnset = new List<PokemonAttack>();
+            foreach (var ls in csvdb.Learnsets.FindAll(ls => ls.PokemonID == pkmn.ID))
+            {
+                Learnset.Add(new PokemonAttack
+                {
+                    Attack = Attacks.FirstOrDefault(e => e.ID == ls.AttackID)!,
+                    Trigger = ls.Trigger,
+                    TriggerDetails = ls.TriggerDetails
+                });
+            }
+
+            List<(Ability Ability, bool isHidden)> AbilityPokemon = csvdb.PokemonAbility
+                .FindAll(a => a.PokemonID == pkmn.ID).Select(a =>
+                    (Abilities.FirstOrDefault(an => an.ID == a.AbilityID), isHidden: a.IsHidden)).ToList()!;
+
+
+            Pokemon.Add(new Pokemon
+            {
+                ID = pkmn.ID,
+                Name = pkmn.Name,
+                FormName = pkmn.FormName,
+                Abilities = AbilityPokemon,
+                Learnset = Learnset,
+                Stats = new StatBlock
+                {
+                    Attack = pkmn.Stats.Attack, SpecialAttack = pkmn.Stats.SpecialAttack, Defense = pkmn.Stats.Defense,
+                    SpecialDefense = pkmn.Stats.SpecialDefense, Speed = pkmn.Stats.Speed, HP = pkmn.Stats.HP
+                }
+            });
+        }
+
+        return new Database(Pokemon, Moves, Abilities, Types, DamageClasses, Effects);
     }
 
     public async Task<Database> GetDatabaseFromPokeAPIWithoutEffects()

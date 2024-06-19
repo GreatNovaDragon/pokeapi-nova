@@ -6,7 +6,7 @@ public class Attack
     public string Name { get; set; }
     public int? Power { get; set; }
     public int? PP { get; set; }
-    public DamageClass DamageClass { get; set; }
+    public DamageClass? DamageClass { get; set; }
     public Effect? Effect { get; set; }
 }
 
