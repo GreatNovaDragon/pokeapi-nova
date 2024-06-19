@@ -1,9 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using SimplePokemonAPI.CSV;
+using SimplePokemonAPI.FileModels;
 
 Console.WriteLine("Hello, World!");
-var csvdb = new CsvDatabase();
+var csvdb = new CSV();
 
 //var db = new Database();
 //db = await db.GetDatabase();

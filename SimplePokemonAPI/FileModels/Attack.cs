@@ -1,4 +1,4 @@
-namespace SimplePokemonAPI.CSV;
+namespace SimplePokemonAPI.FileModels;
 
 public class Attack
 {

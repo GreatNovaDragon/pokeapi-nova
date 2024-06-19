@@ -1,9 +1,10 @@
 using System.Globalization;
 using CsvHelper;
 
-namespace SimplePokemonAPI.CSV;
 
-public class CsvDatabase
+namespace SimplePokemonAPI.FileModels;
+
+public class CSV : FileModel
 {
     private readonly string _abilityPath;
     private readonly string _attackPath;
@@ -16,58 +17,41 @@ public class CsvDatabase
     private readonly string _pokemonPath;
     private readonly string _typePath;
 
-    public CsvDatabase() : this("./database")
+    public CSV(bool read = false) : this("./database", read)
     {
         Console.WriteLine("Creating DB at ./database");
     }
 
 
-    public CsvDatabase(string DBPath)
+    private CSV(string dbPath, bool read = false)
     {
-        _dbPath = DBPath;
-        _pokemonPath = Path.Combine(DBPath, "pokemon.csv");
-        _pokemonAbilityPath = "pokemon_ability.csv";
-        _abilityPath = "abilityset.csv";
-        _effectPath = "effect.csv";
-        _typePath = "type.csv";
-        _damageRelationsPath = "damage_relations.csv";
-        _damageClassPath = "damage_class.csv";
-        _attackPath = "attack.csv";
-        _learnsetPath = "learnset.csv";
+        _dbPath = dbPath;
+        _pokemonPath = Path.Combine(dbPath, "pokemon.csv");
+        _pokemonAbilityPath = Path.Combine(dbPath,"pokemon_ability.csv");
+        _abilityPath = Path.Combine(dbPath,"abilityset.csv");
+        _effectPath = Path.Combine(dbPath,"effect.csv");
+        _typePath = Path.Combine(dbPath,"type.csv");
+        _damageRelationsPath = Path.Combine(dbPath,"damage_relations.csv");
+        _damageClassPath = Path.Combine(dbPath,"damage_class.csv");
+        _attackPath = Path.Combine(dbPath,"attack.csv");
+        _learnsetPath = Path.Combine(dbPath,"learnset.csv");
 
-        Pokemon = [];
-        PokemonAbility = [];
-        Abilities = [];
-        Effects = [];
-        Types = [];
-        DamageRelations = [];
-        DamageClasses = [];
-        Attacks = [];
-        Learnsets = [];
-
-        if (!Directory.Exists(DBPath))
+        if (read)
         {
-            PrepareEmptyDatabase();
-            return;
+            throw new NotImplementedException();
+            //TODO:Read CSV   
         }
-
-        throw new NotImplementedException();
-        //TODO: Read CSV
+        else
+        {
+            if (!Directory.Exists(dbPath))
+            {
+                PrepareEmptyDatabase();
+            }
+        }
     }
 
 
-    public List<Pokemon> Pokemon { get; set; }
-    public List<PokemonAbility> PokemonAbility { get; set; }
-    public List<Ability> Abilities { get; set; }
-    public List<Effect> Effects { get; set; }
-    public List<ElementalType> Types { get; set; }
-    public List<DamageRelations> DamageRelations { get; set; }
-    public List<DamageClass> DamageClasses { get; set; }
-    public List<Attack> Attacks { get; set; }
-    public List<PokemonAttack> Learnsets { get; set; }
-
-
-    public void PrepareEmptyDatabase()
+    private void PrepareEmptyDatabase()
     {
         Directory.CreateDirectory(_dbPath);
 
