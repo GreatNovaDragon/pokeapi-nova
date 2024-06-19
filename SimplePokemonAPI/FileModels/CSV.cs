@@ -1,7 +1,6 @@
 using System.Globalization;
 using CsvHelper;
 
-
 namespace SimplePokemonAPI.FileModels;
 
 public class CSV : FileModel
@@ -17,97 +16,146 @@ public class CSV : FileModel
     private readonly string _pokemonPath;
     private readonly string _typePath;
 
-    public CSV(bool read = false) : this("./database", read)
+    public CSV() : this("./database")
     {
         Console.WriteLine("Creating DB at ./database");
     }
 
 
-    private CSV(string dbPath, bool read = false)
+    private CSV(string dbPath)
     {
         _dbPath = dbPath;
         _pokemonPath = Path.Combine(dbPath, "pokemon.csv");
-        _pokemonAbilityPath = Path.Combine(dbPath,"pokemon_ability.csv");
-        _abilityPath = Path.Combine(dbPath,"abilityset.csv");
-        _effectPath = Path.Combine(dbPath,"effect.csv");
-        _typePath = Path.Combine(dbPath,"type.csv");
-        _damageRelationsPath = Path.Combine(dbPath,"damage_relations.csv");
-        _damageClassPath = Path.Combine(dbPath,"damage_class.csv");
-        _attackPath = Path.Combine(dbPath,"attack.csv");
-        _learnsetPath = Path.Combine(dbPath,"learnset.csv");
+        _pokemonAbilityPath = Path.Combine(dbPath, "pokemon_ability.csv");
+        _abilityPath = Path.Combine(dbPath, "abilityset.csv");
+        _effectPath = Path.Combine(dbPath, "effect.csv");
+        _typePath = Path.Combine(dbPath, "type.csv");
+        _damageRelationsPath = Path.Combine(dbPath, "damage_relations.csv");
+        _damageClassPath = Path.Combine(dbPath, "damage_class.csv");
+        _attackPath = Path.Combine(dbPath, "attack.csv");
+        _learnsetPath = Path.Combine(dbPath, "learnset.csv");
+    }
 
-        if (read)
+    public override void Read()
+    {
+        using (var writer = new StreamReader(_pokemonPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
         {
-            throw new NotImplementedException();
-            //TODO:Read CSV   
+            Pokemon = csv.GetRecords<Pokemon>().ToList();
         }
-        else
+
+        using (var writer = new StreamReader(_pokemonAbilityPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
         {
-            if (!Directory.Exists(dbPath))
-            {
-                PrepareEmptyDatabase();
-            }
+            PokemonAbility = csv.GetRecords<PokemonAbility>().ToList();
+        }
+
+
+        using (var writer = new StreamReader(_abilityPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            Abilities = csv.GetRecords<Ability>().ToList();
+        }
+
+        using (var writer = new StreamReader(_effectPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            Effects = csv.GetRecords<Effect>().ToList();
+        }
+
+        using (var writer = new StreamReader(_typePath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            Types = csv.GetRecords<ElementalType>().ToList();
+        }
+
+        using (var writer = new StreamReader(_damageRelationsPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            DamageRelations = csv.GetRecords<DamageRelations>().ToList();
+        }
+
+        using (var writer = new StreamReader(_damageClassPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            DamageClasses = csv.GetRecords<DamageClass>().ToList();
+        }
+
+        using (var writer = new StreamReader(_attackPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            Attacks = csv.GetRecords<Attack>().ToList();
+        }
+
+        using (var writer = new StreamReader(_learnsetPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            Learnsets = csv.GetRecords<PokemonAttack>().ToList();
         }
     }
 
-
-    private void PrepareEmptyDatabase()
+    public override void Write()
     {
         Directory.CreateDirectory(_dbPath);
 
         using (var writer = new StreamWriter(_pokemonPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteHeader<Pokemon>();
+            csv.WriteRecords(Pokemon);
         }
 
         using (var writer = new StreamWriter(_pokemonAbilityPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteHeader<PokemonAbility>();
+            csv.WriteRecords(PokemonAbility);
         }
 
 
         using (var writer = new StreamWriter(_abilityPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteHeader<Ability>();
+            csv.WriteRecords(Abilities);
         }
 
         using (var writer = new StreamWriter(_effectPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteHeader<Effect>();
+            csv.WriteRecords(Effects);
         }
 
         using (var writer = new StreamWriter(_typePath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteHeader<ElementalType>();
+            csv.WriteRecords(Types);
         }
 
         using (var writer = new StreamWriter(_damageRelationsPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteHeader<DamageRelations>();
+            csv.WriteRecords(DamageRelations);
         }
 
         using (var writer = new StreamWriter(_damageClassPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteHeader<DamageClass>();
+            csv.WriteRecords(DamageClasses);
         }
 
         using (var writer = new StreamWriter(_attackPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteHeader<Attack>();
+            csv.WriteRecords(Attacks);
         }
 
         using (var writer = new StreamWriter(_learnsetPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
-            csv.WriteHeader<PokemonAttack>();
+            csv.WriteRecords(Learnsets);
         }
+    }
+
+    public override void PrepareEmptyDatabase()
+    {
+        Write();
     }
 }

@@ -1,6 +1,5 @@
 using PokeApiNet;
 using SimplePokemonAPI.FileModels;
-using Type = PokeApiNet.Type;
 
 namespace SimplePokemonAPI.Models;
 
@@ -97,7 +96,7 @@ public class Database(
 
         var Types = new List<ElementalType>();
 
-        await foreach (var typeRessource in apiclient.GetAllNamedResourcesAsync<Type>())
+        await foreach (var typeRessource in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Type>())
         {
             var ApiType = await apiclient.GetResourceAsync(typeRessource);
             Types.Add(
@@ -112,7 +111,7 @@ public class Database(
 
         foreach (var Type in Types)
         {
-            var ApiType = await apiclient.GetResourceAsync<Type>(Type.ID);
+            var ApiType = await apiclient.GetResourceAsync<PokeApiNet.Type>(Type.ID);
             foreach (var dt in ApiType.DamageRelations.DoubleDamageTo)
                 Type.DamageRelations.Add((Types.FirstOrDefault(t => t.ID == dt.Name), 200));
 
