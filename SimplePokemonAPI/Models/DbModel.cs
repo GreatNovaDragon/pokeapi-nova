@@ -1,53 +1,55 @@
 using PokeApiNet;
+using SimplePokemonAPI.CSV;
 using Type = PokeApiNet.Type;
 
 namespace SimplePokemonAPI.Models;
 
-public class Database
+public class Database(
+    List<Pokemon> pokemon,
+    List<Attack> attacks,
+    List<Ability> abilities,
+    List<ElementalType> types,
+    List<DamageClass> damageClasses,
+    List<Effect> effects)
 {
-    public Database(List<Pokemon> Pokemon, List<Attack> Attacks, List<Ability> Abilities, List<ElementalType> Types,
-        List<DamageClass> DamageClasses, List<Effect> Effects)
+    public Database() : this([], [], [], [], [], [])
     {
-        this.Pokemon = Pokemon;
-        this.Attacks = Attacks;
-        this.Abilities = Abilities;
-        this.Types = Types;
-        this.DamageClasses = DamageClasses;
-        this.Effects = Effects;
-    }
-
-    public Database()
-    {
-        Pokemon = [];
-        Attacks = [];
-        Abilities = [];
-        Types = [];
-        DamageClasses = [];
-        Effects = [];
     }
 
 
-    public List<Pokemon> Pokemon { get; set; }
-    public List<Attack> Attacks { get; set; }
-    public List<Ability> Abilities { get; set; }
-    public List<ElementalType> Types { get; set; }
-    public List<DamageClass> DamageClasses { get; set; }
-    public List<Effect> Effects { get; set; }
+    public List<Pokemon> Pokemon { get; set; } = pokemon;
+    public List<Attack> Attacks { get; set; } = attacks;
+    public List<Ability> Abilities { get; set; } = abilities;
+    public List<ElementalType> Types { get; set; } = types;
+    public List<DamageClass> DamageClasses { get; set; } = damageClasses;
+    public List<Effect> Effects { get; set; } = effects;
 
-    public async Task<Database> GetDatabase()
+    public Database GetDatabaseFromCSV(string path = "./database")
+    {
+        
+        CsvDatabase csvdb = new CsvDatabase(path);
+       
+        throw new NotImplementedException();
+
+        // TODO: Add them to the constructor, and like, do everything else too
+        return new Database();
+    }
+
+    public async Task<Database> GetDatabaseFromPokeAPIWithoutEffects()
     {
         var apiclient = new PokeApiClient();
 
         var Types = new List<ElementalType>();
 
-        await foreach (var TypeRessource in apiclient.GetAllNamedResourcesAsync<Type>())
+        await foreach (var typeRessource in apiclient.GetAllNamedResourcesAsync<Type>())
         {
-            var ApiType = await apiclient.GetResourceAsync(TypeRessource);
+            var ApiType = await apiclient.GetResourceAsync(typeRessource);
             Types.Add(
                 new ElementalType
                 {
                     ID = ApiType.Name,
-                    Name = ApiType.Names.FirstOrDefault(n => n.Language.Name == "en").Name
+                    Name = ApiType.Names.FirstOrDefault(n => n.Language.Name == "en").Name,
+                    DamageRelations = []
                 }
             );
         }
@@ -59,7 +61,10 @@ public class Database
                 Type.DamageRelations.Add((Types.FirstOrDefault(t => t.ID == dt.Name), 200));
 
             foreach (var ht in ApiType.DamageRelations.HalfDamageTo)
-                Type.DamageRelations.Add((Types.FirstOrDefault(t => t.ID == ht.Name), 50));
+            {
+                var type = Types.FirstOrDefault(t => t.ID == ht.Name);
+                Type.DamageRelations.Add((type, 50));
+            }
 
             foreach (var nt in ApiType.DamageRelations.NoDamageTo)
                 Type.DamageRelations.Add((Types.FirstOrDefault(t => t.ID == nt.Name), 0));
@@ -86,14 +91,24 @@ public class Database
 
         await foreach (var m in apiclient.GetAllNamedResourcesAsync<Move>())
         {
+            Console.WriteLine($"{m.Name}  {m.Url}");
             var API_moves = await apiclient.GetResourceAsync(m);
+
+            var ID = API_moves.Name;
+            var Name = API_moves.Names.FirstOrDefault(n => n.Language.Name == "en").Name;
+            int? Power = API_moves.Power;
+            var PP = API_moves.Pp;
+            var DamageClass = DamageClasses.FirstOrDefault(d => d.Name == API_moves.DamageClass.Name);
+            Effect? Effect = null;
+
             Moves.Add(new Attack
             {
-                ID = API_moves.Name,
-                Name = API_moves.Names.FirstOrDefault(n => n.Language.Name == "en").Name,
-                Power = API_moves.Power.Value,
-                PP = API_moves.Pp.Value,
-                DamageClass = DamageClasses.FirstOrDefault(d => d.Name == API_moves.DamageClass.Name)
+                ID = ID,
+                Name = Name,
+                Power = Power,
+                PP = PP,
+                DamageClass = DamageClass,
+                Effect = Effect
             });
         }
 
@@ -106,6 +121,7 @@ public class Database
             {
                 ID = API_abilities.Name,
                 Name = API_abilities.Names.FirstOrDefault(n => n.Language.Name == "en").Name,
+                Effect = null
             });
         }
 
@@ -128,7 +144,7 @@ public class Database
                     Defense = API_pokemon.Stats[2].BaseStat,
                     SpecialAttack = API_pokemon.Stats[3].BaseStat,
                     SpecialDefense = API_pokemon.Stats[4].BaseStat,
-                    Speed = API_pokemon.Stats[5].BaseStat,
+                    Speed = API_pokemon.Stats[5].BaseStat
                 }
             };
 
@@ -144,28 +160,26 @@ public class Database
 
             List<PokemonAttack> Learnset = [];
             foreach (var m in API_pokemon.Moves)
+            foreach (var vg in m.VersionGroupDetails)
             {
-                foreach (var vg in m.VersionGroupDetails)
-                {
-                    var how = vg.MoveLearnMethod.Name;
-                    var move = Moves.FirstOrDefault(om => om.ID == m.Move.Name);
-                    string details = "";
-                    if (how == "level-up")
-                        details = vg.LevelLearnedAt.ToString();
+                var how = vg.MoveLearnMethod.Name;
+                var move = Moves.FirstOrDefault(om => om.ID == m.Move.Name);
+                var details = "";
+                if (how == "level-up")
+                    details = vg.LevelLearnedAt.ToString();
 
-                    Learnset.Add(new PokemonAttack
-                    {
-                        Attack = move,
-                        Trigger = how,
-                        TriggerDetails = details
-                    });
-                }
+                Learnset.Add(new PokemonAttack
+                {
+                    Attack = move,
+                    Trigger = how,
+                    TriggerDetails = details
+                });
             }
 
             mon.Learnset = Learnset;
             Pokemon.Add(mon);
         }
 
-        return new Database(Pokemon, Attacks, Abilities, Types, DamageClasses, new List<Effect>());
+        return new Database(Pokemon, Moves, Abilities, Types, DamageClasses, new List<Effect>());
     }
 }
