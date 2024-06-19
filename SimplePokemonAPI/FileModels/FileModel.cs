@@ -21,7 +21,7 @@ public abstract class FileModel
     public abstract void PrepareEmptyDatabase();
 
 
-    public static void InsertFromDBModel(Database db)
+    public static void OverwriteWithDataFromDB(Database db)
     {
         throw new NotImplementedException();
     }

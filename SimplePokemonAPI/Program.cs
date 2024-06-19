@@ -6,4 +6,4 @@ using SimplePokemonAPI.Models;
 Console.WriteLine("Hello, World!");
 var csvdb = new CSV();
 csvdb.PrepareEmptyDatabase();
-FileModel.InsertFromDBModel(new Database());
+FileModel.OverwriteWithDataFromDB(new Database());
