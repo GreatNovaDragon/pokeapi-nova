@@ -8,7 +8,6 @@ public class Pokemon
     public StatBlock Stats { get; set; }
 }
 
-
 public class PokemonAbility
 {
     public string PokemonID { get; set; }

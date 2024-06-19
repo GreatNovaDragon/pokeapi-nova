@@ -5,28 +5,18 @@ namespace SimplePokemonAPI.CSV;
 
 public class CsvDatabase
 {
-    readonly string _dbPath;
-    readonly string _pokemonPath;
-    readonly string _pokemonAbilityPath;
-    readonly string _abilityPath;
-    readonly string _effectPath;
-    readonly string _typePath;
-    readonly string _damageRelationsPath;
-    readonly string _damageClassPath;
-    readonly string _attackPath;
-    readonly string _learnsetPath;
+    private readonly string _abilityPath;
+    private readonly string _attackPath;
+    private readonly string _damageClassPath;
+    private readonly string _damageRelationsPath;
+    private readonly string _dbPath;
+    private readonly string _effectPath;
+    private readonly string _learnsetPath;
+    private readonly string _pokemonAbilityPath;
+    private readonly string _pokemonPath;
+    private readonly string _typePath;
 
-    
-    public List<Pokemon> Pokemon { get; set; }
-    public List<PokemonAbility> PokemonAbility { get; set; }
-    public List<Ability> Abilities { get; set; }
-    public List<Effect> Effects { get; set; }
-    public List<ElementalType> Types { get; set; }
-    public List<DamageRelations> DamageRelations { get; set; }
-    public List<DamageClass> DamageClasses { get; set; }
-    public List<Attack> Attacks { get; set; }
-    public List<PokemonAttack> Learnsets { get; set; }
-    public CsvDatabase(): this("./database")
+    public CsvDatabase() : this("./database")
     {
         Console.WriteLine("Creating DB at ./database");
     }
@@ -34,7 +24,7 @@ public class CsvDatabase
 
     public CsvDatabase(string DBPath)
     {
-        this._dbPath = DBPath;
+        _dbPath = DBPath;
         _pokemonPath = Path.Combine(DBPath, "pokemon.csv");
         _pokemonAbilityPath = "pokemon_ability.csv";
         _abilityPath = "abilityset.csv";
@@ -45,16 +35,16 @@ public class CsvDatabase
         _attackPath = "attack.csv";
         _learnsetPath = "learnset.csv";
 
-        this.Pokemon = [];
-        this.PokemonAbility = [];
-        this.Abilities = [];
-        this.Effects = [];
-        this.Types = [];
-        this.DamageRelations = [];
-        this.DamageClasses = [];
-        this.Attacks = [];
-        this.Learnsets = [];
-        
+        Pokemon = [];
+        PokemonAbility = [];
+        Abilities = [];
+        Effects = [];
+        Types = [];
+        DamageRelations = [];
+        DamageClasses = [];
+        Attacks = [];
+        Learnsets = [];
+
         if (!Directory.Exists(DBPath))
         {
             PrepareEmptyDatabase();
@@ -64,6 +54,17 @@ public class CsvDatabase
         throw new NotImplementedException();
         //TODO: Read CSV
     }
+
+
+    public List<Pokemon> Pokemon { get; set; }
+    public List<PokemonAbility> PokemonAbility { get; set; }
+    public List<Ability> Abilities { get; set; }
+    public List<Effect> Effects { get; set; }
+    public List<ElementalType> Types { get; set; }
+    public List<DamageRelations> DamageRelations { get; set; }
+    public List<DamageClass> DamageClasses { get; set; }
+    public List<Attack> Attacks { get; set; }
+    public List<PokemonAttack> Learnsets { get; set; }
 
 
     public void PrepareEmptyDatabase()
@@ -89,7 +90,7 @@ public class CsvDatabase
             csv.WriteHeader<Ability>();
         }
 
-        using (var writer = new StreamWriter( _effectPath))
+        using (var writer = new StreamWriter(_effectPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {
             csv.WriteHeader<Effect>();

@@ -26,9 +26,8 @@ public class Database(
 
     public Database GetDatabaseFromCSV(string path = "./database")
     {
-        
-        CsvDatabase csvdb = new CsvDatabase(path);
-       
+        var csvdb = new CsvDatabase(path);
+
         throw new NotImplementedException();
 
         // TODO: Add them to the constructor, and like, do everything else too
@@ -96,7 +95,7 @@ public class Database(
 
             var ID = API_moves.Name;
             var Name = API_moves.Names.FirstOrDefault(n => n.Language.Name == "en").Name;
-            int? Power = API_moves.Power;
+            var Power = API_moves.Power;
             var PP = API_moves.Pp;
             var DamageClass = DamageClasses.FirstOrDefault(d => d.Name == API_moves.DamageClass.Name);
             Effect? Effect = null;
