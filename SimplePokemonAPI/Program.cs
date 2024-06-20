@@ -4,5 +4,12 @@ using SimplePokemonAPI.Models;
 using SimplePokemonAPI.Serializers;
 
 var csv = new CSV_Serializer();
-csv.OverwriteWithDataFromDB(await new Knowledgebase().GetDatabaseFromPokeAPIWithoutEffects("en"));
+var knowledgebase = await new Knowledgebase().GetDatabaseFromPokeAPIWithoutEffects("en");
+
+foreach (var item in knowledgebase.Pokemon)
+{
+    Console.WriteLine($"{item.Name} ({item.FormName})");
+}
+
+csv.OverwriteWithDataFromDB(knowledgebase);
 csv.Write();

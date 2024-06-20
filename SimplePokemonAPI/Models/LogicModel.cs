@@ -11,9 +11,11 @@ public class Knowledgebase(
     List<ElementalType> types,
     List<DamageClass> damageClasses,
     List<Effect> moveeffects,
-    List<Effect> abilityeffects)
+    List<Effect> abilityeffects,
+    List<VersionGroup> versiongroups,
+    List<Version> versions)
 {
-    public Knowledgebase() : this([], [], [], [], [], [], [])
+    public Knowledgebase() : this([], [], [], [], [], [], [], [], [])
     {
     }
 
@@ -25,6 +27,10 @@ public class Knowledgebase(
     public List<DamageClass> DamageClasses { get; set; } = damageClasses;
     public List<Effect> MoveEffects { get; set; } = moveeffects;
     public List<Effect> AbilityEffects { get; set; } = abilityeffects;
+    
+    public List<Version> Versions { get; set; } = versions;
+
+    public List<VersionGroup> VersionGroups { get; set; } = versiongroups;
 
     public Knowledgebase GetKnowledebaseFromDatabase(Serializer filemodel)
     {
@@ -127,7 +133,9 @@ public class Knowledgebase(
                 }
             );
         }
+        Console.WriteLine("Done with Types");
 
+        
         foreach (var Type in Types)
         {
             var ApiType = await apiclient.GetResourceAsync<Type>(Type.ID);
@@ -147,6 +155,9 @@ public class Knowledgebase(
                 if (!Type.DamageRelations.Any(e => e.DefendingType == RelationType))
                     Type.DamageRelations.Add((RelationType, 100));
         }
+        
+        Console.WriteLine("Done with TypeRelations");
+
 
         var DamageClasses = new List<DamageClass>();
 
@@ -161,12 +172,12 @@ public class Knowledgebase(
                 });
         }
 
+        Console.WriteLine("Done with DamageClassess");
+
         var Moves = new List<Move>();
 
         await foreach (var m in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Move>())
         {
-            Console.WriteLine($"{m.Name}  {m.Url}");
-
             var ID = m.Name;
             var Name = m.Name;
             int? Power = 999;
@@ -209,12 +220,14 @@ public class Knowledgebase(
                 Effect = Effect
             });
         }
+        Console.WriteLine("Done with Moves");
+
+
 
         var Abilities = new List<Ability>();
 
         await foreach (var a in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Ability>())
         {
-            Console.WriteLine($"{a.Name}  {a.Url}");
 
             var API_abilities = await apiclient.GetResourceAsync(a);
             var Name = API_abilities.Names.FirstOrDefault(n => n.Language.Name == lang);
@@ -225,18 +238,22 @@ public class Knowledgebase(
                 Effect = null
             });
         }
+        Console.WriteLine("Done with Abilities");
 
         var Pokemon = new List<Pokemon>();
 
-        await foreach (var p in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Pokemon>())
+        await foreach (var p in apiclient.GetAllNamedResourcesAsync<PokeApiNet.PokemonForm>())
         {
-            Console.WriteLine($"{p.Name}  {p.Url}");
 
-            var API_pokemon = await apiclient.GetResourceAsync(p);
+            var API_Form = await apiclient.GetResourceAsync(p);
+            var API_pokemon = await apiclient.GetResourceAsync(API_Form.Pokemon);
             var API_Species = await apiclient.GetResourceAsync(API_pokemon.Species);
-            var API_Form = await apiclient.GetResourceAsync(API_pokemon.Forms[0]);
-            var Name = API_Species.Names.FirstOrDefault(n => n.Language.Name == lang);
-            var FormName = API_Form.Names.FirstOrDefault(n => n.Language.Name == lang);
+            var Name = API_Form.Names.FirstOrDefault(n => n.Language.Name == lang);
+            if (Name == null)
+            {
+                Name = API_Species.Names.FirstOrDefault(n => n.Language.Name == lang);
+            }
+            var FormName = API_Form.FormNames.FirstOrDefault(n => n.Language.Name == lang);
             var mon = new Pokemon
             {
                 ID = API_pokemon.Name,
@@ -287,8 +304,16 @@ public class Knowledgebase(
             }
 
             mon.Learnset = Learnset;
-            Pokemon.Add(mon);
+           Pokemon.Add(mon);
+           
         }
+        
+        Console.WriteLine("Done with Mons");
+
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
 
         return new Knowledgebase(Pokemon, Moves, Abilities, Types, DamageClasses, new List<Effect>(),
             new List<Effect>());

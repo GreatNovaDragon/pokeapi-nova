@@ -1,5 +1,6 @@
 using System.Globalization;
 using CsvHelper;
+using SimplePokemonAPI.Serializers.SerializerModels;
 
 namespace SimplePokemonAPI.Serializers;
 

@@ -1,12 +1,15 @@
 using SimplePokemonAPI.Models;
-using Ability = SimplePokemonAPI.Serializers.Ability;
-using DamageClass = SimplePokemonAPI.Serializers.DamageClass;
-using Effect = SimplePokemonAPI.Serializers.Effect;
-using ElementalType = SimplePokemonAPI.Serializers.ElementalType;
-using Move = SimplePokemonAPI.Serializers.Move;
-using Pokemon = SimplePokemonAPI.Serializers.Pokemon;
-using PokemonAttack = SimplePokemonAPI.Serializers.PokemonAttack;
-using StatBlock = SimplePokemonAPI.Serializers.StatBlock;
+using SimplePokemonAPI.Serializers.SerializerModels;
+using Ability = SimplePokemonAPI.Serializers.SerializerModels.Ability;
+using DamageClass = SimplePokemonAPI.Serializers.SerializerModels.DamageClass;
+using Effect = SimplePokemonAPI.Serializers.SerializerModels.Effect;
+using ElementalType = SimplePokemonAPI.Serializers.SerializerModels.ElementalType;
+using Move = SimplePokemonAPI.Serializers.SerializerModels.Move;
+using Pokemon = SimplePokemonAPI.Serializers.SerializerModels.Pokemon;
+using PokemonAttack = SimplePokemonAPI.Serializers.SerializerModels.PokemonAttack;
+using StatBlock = SimplePokemonAPI.Serializers.SerializerModels.StatBlock;
+using Version = SimplePokemonAPI.Serializers.SerializerModels.Version;
+using VersionGroup = SimplePokemonAPI.Serializers.SerializerModels.VersionGroup;
 
 namespace SimplePokemonAPI.Serializers;
 
@@ -24,6 +27,9 @@ public abstract class Serializer
     public List<DamageClass> DamageClasses { get; set; } = [];
     public List<Move> Moves { get; set; } = [];
     public List<PokemonAttack> Learnsets { get; set; } = [];
+    
+    public List<Version> Versions { get; set; } = [];
+    public List<VersionGroup> VersionGroups { get; set; } = [];
 
     public abstract void Read();
 
@@ -114,11 +120,25 @@ public abstract class Serializer
         foreach (var move in db.Moves)
             Moves.Add(new Move
             {
-                ID = move.ID, Name = move.Name, EffectID = move.Effect.ID, EffectChance = move.EffectChance,
+                ID = move.ID, Name = move.Name, EffectID = move.Effect?.ID, EffectChance = move.EffectChance,
                 Accuracy = move.Accuracy, Priority = move.Priority, Power = move.Power, PP = move.PP,
-                DamageClassID = move.DamageClass.ID
+                DamageClassID = move.DamageClass?.ID
             });
 
-        Write();
+        foreach (var ver in db.Versions)
+        {
+           Versions.Add(new Version
+           {
+               
+           ID = ver.ID, Name = ver.Name, InVersionGroupID = ver.InVersionGroup.ID}); 
+        }
+        
+        foreach (var ver in db.VersionGroups)
+        {
+            VersionGroups.Add(new VersionGroup()
+            {
+               
+                ID = ver.ID, Order = ver.Order}); 
+        }
     }
 }

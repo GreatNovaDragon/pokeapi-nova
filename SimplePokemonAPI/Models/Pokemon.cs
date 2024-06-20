@@ -29,6 +29,7 @@ public class Ability
 
 public class PokemonAttack
 {
+    public VersionGroup VersionGroup { get; set; }
     public Move Move { get; set; }
     public string Trigger { get; set; }
     public string TriggerDetails { get; set; }

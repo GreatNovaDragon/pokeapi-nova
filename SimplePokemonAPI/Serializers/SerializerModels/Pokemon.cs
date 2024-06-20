@@ -1,4 +1,4 @@
-namespace SimplePokemonAPI.Serializers;
+namespace SimplePokemonAPI.Serializers.SerializerModels;
 
 public class Pokemon
 {
@@ -39,7 +39,7 @@ public class Ability
 {
     public string ID { get; set; }
     public string Name { get; set; }
-    public string EffectID { get; set; }
+    public string? EffectID { get; set; }
 }
 
 public class PokemonAttack
@@ -48,4 +48,6 @@ public class PokemonAttack
     public string AttackID { get; set; }
     public string Trigger { get; set; }
     public string TriggerDetails { get; set; }
+    
+    
 }
