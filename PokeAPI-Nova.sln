@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokeAPI-Nova", "PokeAPI-Nova\PokeAPI-Nova.csproj", "{A27F5CD5-A3EF-4602-B826-AC85EBFE382C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A27F5CD5-A3EF-4602-B826-AC85EBFE382C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A27F5CD5-A3EF-4602-B826-AC85EBFE382C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A27F5CD5-A3EF-4602-B826-AC85EBFE382C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A27F5CD5-A3EF-4602-B826-AC85EBFE382C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
