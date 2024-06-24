@@ -27,7 +27,7 @@ public abstract class Serializer
     public List<DamageClass> DamageClasses { get; set; } = [];
     public List<Move> Moves { get; set; } = [];
     public List<PokemonAttack> Learnsets { get; set; } = [];
-    
+
     public List<Version> Versions { get; set; } = [];
     public List<VersionGroup> VersionGroups { get; set; } = [];
 
@@ -70,7 +70,8 @@ public abstract class Serializer
                 });
 
             foreach (var pa in pokemon.Learnset)
-            { Console.WriteLine($"{pa.AppliesTo?.ID}");
+            {
+                Console.WriteLine($"{pa.AppliesTo?.ID}");
                 Learnsets.Add(new PokemonAttack
                 {
                     AttackID = pa.Move.ID,
@@ -130,23 +131,20 @@ public abstract class Serializer
             {
                 ID = move.ID, Name = move.Name, EffectID = move.Effect?.ID, EffectChance = move.EffectChance,
                 Accuracy = move.Accuracy, Priority = move.Priority, Power = move.Power, PP = move.PP,
-                DamageClassID = move.DamageClass?.ID, TypeID = move.Type?.ID, IntroducedInVersionGroupID = move.IntroducedIn?.ID
+                DamageClassID = move.DamageClass?.ID, TypeID = move.Type?.ID,
+                IntroducedInVersionGroupID = move.IntroducedIn?.ID
             });
 
         foreach (var ver in db.Versions)
-        {
-           Versions.Add(new Version
-           {
-               
-           ID = ver.ID, Name = ver.Name, InVersionGroupID = ver.InVersionGroup.ID}); 
-        }
-        
-        foreach (var ver in db.VersionGroups)
-        {
-            VersionGroups.Add(new VersionGroup()
+            Versions.Add(new Version
             {
-               
-                ID = ver.ID, Order = ver.Order}); 
-        }
+                ID = ver.ID, Name = ver.Name, InVersionGroupID = ver.InVersionGroup.ID
+            });
+
+        foreach (var ver in db.VersionGroups)
+            VersionGroups.Add(new VersionGroup
+            {
+                ID = ver.ID, Order = ver.Order
+            });
     }
 }

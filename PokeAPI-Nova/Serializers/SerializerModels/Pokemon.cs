@@ -55,7 +55,6 @@ public class PokemonAttack
     public string AttackID { get; set; }
     public string Trigger { get; set; }
     public string TriggerDetails { get; set; }
-    
-    public string AppliesToVersionGroupID { get; set; }
 
+    public string AppliesToVersionGroupID { get; set; }
 }

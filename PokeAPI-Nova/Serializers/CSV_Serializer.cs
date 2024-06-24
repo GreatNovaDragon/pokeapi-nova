@@ -19,11 +19,11 @@ public class CSV_Serializer(string dbPath) : Serializer
     private readonly string _pokemonPath = Path.Combine(dbPath, "pokemon/pokemon.csv");
 
     private readonly string _typePath = Path.Combine(dbPath, "types/type.csv");
-    private readonly string _visualonlypokemonPath = Path.Combine(dbPath, "pokemon/visualonly.csv");
-    
-    
+
+
     private readonly string _versiongroupPath = Path.Combine(dbPath, "versions/versiongroup.csv");
     private readonly string _versionPath = Path.Combine(dbPath, "versions/version.csv");
+    private readonly string _visualonlypokemonPath = Path.Combine(dbPath, "pokemon/visualonly.csv");
 
     public CSV_Serializer() : this("./database/")
     {
@@ -43,7 +43,7 @@ public class CSV_Serializer(string dbPath) : Serializer
         {
             Versions = csv.GetRecords<Version>().ToList();
         }
-        
+
         using (var writer = new StreamReader(_pokemonPath))
         using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
         {
@@ -120,7 +120,7 @@ public class CSV_Serializer(string dbPath) : Serializer
         Directory.CreateDirectory(Path.Combine(dbPath, "pokemon"));
         Directory.CreateDirectory(Path.Combine(dbPath, "types"));
         Directory.CreateDirectory(Path.Combine(dbPath, "versions"));
-        
+
         using (var writer = new StreamWriter(_versiongroupPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {

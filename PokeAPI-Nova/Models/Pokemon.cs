@@ -1,5 +1,3 @@
-using System.Runtime.Versioning;
-
 namespace SimplePokemonAPI.Models;
 
 public class Pokemon
@@ -40,6 +38,6 @@ public class PokemonAttack
     public Move Move { get; set; }
     public string Trigger { get; set; }
     public string TriggerDetails { get; set; }
-    
+
     public VersionGroup? AppliesTo { get; set; }
 }

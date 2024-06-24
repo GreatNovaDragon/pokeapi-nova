@@ -37,25 +37,21 @@ public class Database(
         var VersionGroups = new List<VersionGroup>();
 
         foreach (var vg in serializer.VersionGroups)
-        {
             VersionGroups.Add(new VersionGroup
             {
                 ID = vg.ID,
-                Order = vg.Order,
+                Order = vg.Order
             });
-        }
 
         var Versions = new List<Version>();
 
         foreach (var ver in serializer.Versions)
-        {
             Versions.Add(new Version
             {
                 ID = ver.ID,
                 InVersionGroup = VersionGroups.FirstOrDefault(vg => vg.ID == ver.InVersionGroupID),
                 Name = ver.Name
             });
-        }
 
         var Types = serializer.Types.Select(t => new ElementalType
             {
@@ -160,15 +156,14 @@ public class Database(
         await foreach (var vg in apiclient.GetAllNamedResourcesAsync<PokeApiNet.VersionGroup>())
         {
             var ApiVersionGroup = await apiclient.GetResourceAsync(vg);
-            VersionGroups.Add(new VersionGroup()
+            VersionGroups.Add(new VersionGroup
             {
                 ID = ApiVersionGroup.Name,
-                Order = ApiVersionGroup.Order,
+                Order = ApiVersionGroup.Order
             });
         }
-        
-        Console.WriteLine("Done with VersionGroups");
 
+        Console.WriteLine("Done with VersionGroups");
 
 
         await foreach (var ver in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Version>())
@@ -181,7 +176,7 @@ public class Database(
                 InVersionGroup = VersionGroups.FirstOrDefault(vg => vg.ID == ApiGameVersion.VersionGroup.Name)
             });
         }
-        
+
         Console.WriteLine("Done with Versions");
 
 
@@ -310,8 +305,8 @@ public class Database(
 
         var Pokemon = new List<Pokemon>();
 
-        int i = 0;
-        await foreach (var p in apiclient.GetAllNamedResourcesAsync<PokeApiNet.PokemonForm>())
+        var i = 0;
+        await foreach (var p in apiclient.GetAllNamedResourcesAsync<PokemonForm>())
         {
             i++;
             Console.WriteLine($"{p.Name} {i}");
@@ -319,10 +314,7 @@ public class Database(
             var API_pokemon = await apiclient.GetResourceAsync(API_Form.Pokemon);
             var API_Species = await apiclient.GetResourceAsync(API_pokemon.Species);
             var Name = API_Species.Names.FirstOrDefault(n => n.Language.Name == lang);
-            if (Name == null)
-            {
-                Name = API_Species.Names.FirstOrDefault(n => n.Language.Name == lang);
-            }
+            if (Name == null) Name = API_Species.Names.FirstOrDefault(n => n.Language.Name == lang);
 
             var FormName = API_Form.FormNames.FirstOrDefault(n => n.Language.Name == lang);
             var PrimaryType = Types.FirstOrDefault(tp => tp.ID == API_pokemon.Types[0].Type.Name);
