@@ -4,6 +4,8 @@ public class Move
 {
     public string ID { get; set; }
     public string Name { get; set; }
+
+    public ElementalType? Type { get; set; }
     public int? Power { get; set; }
     public int? PP { get; set; }
 
@@ -13,6 +15,8 @@ public class Move
 
     public int? EffectChance { get; set; }
     public Effect? Effect { get; set; }
+
+    public VersionGroup? IntroducedIn { get; set; }
 }
 
 public class DamageClass
@@ -23,8 +27,10 @@ public class DamageClass
 
 public class ElementalType
 {
-    public string ID { get; set; }
+    public string? ID { get; set; }
     public string Name { get; set; }
+
+    public VersionGroup? IntroducedIn { get; set; }
     public List<(ElementalType DefendingType, int ProcentualMultiplier)> DamageRelations { get; set; }
 }
 

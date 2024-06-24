@@ -1,3 +1,5 @@
+using System.Runtime.Versioning;
+
 namespace SimplePokemonAPI.Models;
 
 public class Pokemon
@@ -8,6 +10,10 @@ public class Pokemon
     public StatBlock Stats { get; set; }
     public List<(Ability Ability, bool IsHidden)> Abilities { get; set; }
     public List<PokemonAttack> Learnset { get; set; }
+
+    public ElementalType PrimaryType { get; set; }
+    public ElementalType? SecundaryType { get; set; }
+    public VersionGroup? IntroducedIn { get; set; }
 }
 
 public class StatBlock
@@ -25,12 +31,15 @@ public class Ability
     public string ID { get; set; }
     public string Name { get; set; }
     public Effect? Effect { get; set; }
+
+    public VersionGroup? IntroducedIn { get; set; }
 }
 
 public class PokemonAttack
 {
-    public VersionGroup VersionGroup { get; set; }
     public Move Move { get; set; }
     public string Trigger { get; set; }
     public string TriggerDetails { get; set; }
+    
+    public VersionGroup? AppliesTo { get; set; }
 }

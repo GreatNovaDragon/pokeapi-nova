@@ -1,6 +1,7 @@
 using System.Globalization;
 using CsvHelper;
 using SimplePokemonAPI.Serializers.SerializerModels;
+using Version = SimplePokemonAPI.Serializers.SerializerModels.Version;
 
 namespace SimplePokemonAPI.Serializers;
 
@@ -19,6 +20,10 @@ public class CSV_Serializer(string dbPath) : Serializer
 
     private readonly string _typePath = Path.Combine(dbPath, "types/type.csv");
     private readonly string _visualonlypokemonPath = Path.Combine(dbPath, "pokemon/visualonly.csv");
+    
+    
+    private readonly string _versiongroupPath = Path.Combine(dbPath, "versions/versiongroup.csv");
+    private readonly string _versionPath = Path.Combine(dbPath, "versions/version.csv");
 
     public CSV_Serializer() : this("./database/")
     {
@@ -27,6 +32,18 @@ public class CSV_Serializer(string dbPath) : Serializer
 
     public override void Read()
     {
+        using (var writer = new StreamReader(_versiongroupPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            VersionGroups = csv.GetRecords<VersionGroup>().ToList();
+        }
+
+        using (var writer = new StreamReader(_versionPath))
+        using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
+        {
+            Versions = csv.GetRecords<Version>().ToList();
+        }
+        
         using (var writer = new StreamReader(_pokemonPath))
         using (var csv = new CsvReader(writer, CultureInfo.InvariantCulture))
         {
@@ -102,6 +119,19 @@ public class CSV_Serializer(string dbPath) : Serializer
         Directory.CreateDirectory(Path.Combine(dbPath, "abilities"));
         Directory.CreateDirectory(Path.Combine(dbPath, "pokemon"));
         Directory.CreateDirectory(Path.Combine(dbPath, "types"));
+        Directory.CreateDirectory(Path.Combine(dbPath, "versions"));
+        
+        using (var writer = new StreamWriter(_versiongroupPath))
+        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+        {
+            csv.WriteRecords(VersionGroups);
+        }
+
+        using (var writer = new StreamWriter(_versionPath))
+        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+        {
+            csv.WriteRecords(Versions);
+        }
 
         using (var writer = new StreamWriter(_pokemonPath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))

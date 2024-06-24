@@ -38,7 +38,7 @@ public abstract class Serializer
     public abstract void PrepareEmpty();
 
 
-    public void OverwriteWithDataFromDB(Knowledgebase db)
+    public void OverwriteWithDataFromDB(Database db)
     {
         foreach (var pokemon in db.Pokemon)
         {
@@ -55,7 +55,10 @@ public abstract class Serializer
                     SpecialAttack = pokemon.Stats.SpecialAttack,
                     SpecialDefense = pokemon.Stats.SpecialDefense,
                     Speed = pokemon.Stats.Speed
-                }
+                },
+                PrimaryTypeID = pokemon.PrimaryType.ID,
+                SecundaryTypeID = pokemon.SecundaryType?.ID,
+                IntroducedInVersionGroupID = pokemon.IntroducedIn?.ID
             });
 
             foreach (var ab in pokemon.Abilities)
@@ -67,13 +70,16 @@ public abstract class Serializer
                 });
 
             foreach (var pa in pokemon.Learnset)
+            { Console.WriteLine($"{pa.AppliesTo?.ID}");
                 Learnsets.Add(new PokemonAttack
                 {
                     AttackID = pa.Move.ID,
                     PokemonID = pokemon.ID,
                     Trigger = pa.Trigger,
-                    TriggerDetails = pa.TriggerDetails
+                    TriggerDetails = pa.TriggerDetails,
+                    AppliesToVersionGroupID = pa.AppliesTo?.ID
                 });
+            }
         }
 
 
@@ -82,7 +88,8 @@ public abstract class Serializer
             {
                 ID = ability.ID,
                 Name = ability.Name,
-                EffectID = ability.Effect == null ? "" : ability.Effect.ID
+                EffectID = ability.Effect == null ? "" : ability.Effect.ID,
+                IntroducedInVersionGroupID = ability.IntroducedIn?.ID
             });
 
 
@@ -98,7 +105,8 @@ public abstract class Serializer
             Types.Add(new ElementalType
             {
                 ID = type.ID,
-                Name = type.Name
+                Name = type.Name,
+                IntroducedInVersionGroupID = type.IntroducedIn?.ID
             });
 
             foreach (var dr in type.DamageRelations)
@@ -122,7 +130,7 @@ public abstract class Serializer
             {
                 ID = move.ID, Name = move.Name, EffectID = move.Effect?.ID, EffectChance = move.EffectChance,
                 Accuracy = move.Accuracy, Priority = move.Priority, Power = move.Power, PP = move.PP,
-                DamageClassID = move.DamageClass?.ID
+                DamageClassID = move.DamageClass?.ID, TypeID = move.Type?.ID, IntroducedInVersionGroupID = move.IntroducedIn?.ID
             });
 
         foreach (var ver in db.Versions)

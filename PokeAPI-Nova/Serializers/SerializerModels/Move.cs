@@ -15,6 +15,9 @@ public class Move
     public int? EffectChance { get; set; }
 
     public string? EffectID { get; set; }
+
+    public string? TypeID { get; set; }
+    public string? IntroducedInVersionGroupID { get; set; }
 }
 
 public class DamageClass
@@ -25,14 +28,16 @@ public class DamageClass
 
 public class ElementalType
 {
-    public string ID { get; set; }
+    public string? ID { get; set; }
     public string Name { get; set; }
+
+    public string IntroducedInVersionGroupID { get; set; }
 }
 
 public class DamageRelation
 {
-    public string AttackerID { get; set; }
-    public string DefenderID { get; set; }
+    public string? AttackerID { get; set; }
+    public string? DefenderID { get; set; }
     public int ProzentualMultiplier { get; set; }
 }
 

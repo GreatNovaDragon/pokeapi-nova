@@ -4,7 +4,7 @@ using Type = PokeApiNet.Type;
 
 namespace SimplePokemonAPI.Models;
 
-public class Knowledgebase(
+public class Database(
     List<Pokemon> pokemon,
     List<Move> moves,
     List<Ability> abilities,
@@ -15,7 +15,7 @@ public class Knowledgebase(
     List<VersionGroup> versiongroups,
     List<Version> versions)
 {
-    public Knowledgebase() : this([], [], [], [], [], [], [], [], [])
+    public Database() : this([], [], [], [], [], [], [], [], [])
     {
     }
 
@@ -27,53 +27,83 @@ public class Knowledgebase(
     public List<DamageClass> DamageClasses { get; set; } = damageClasses;
     public List<Effect> MoveEffects { get; set; } = moveeffects;
     public List<Effect> AbilityEffects { get; set; } = abilityeffects;
-    
+
     public List<Version> Versions { get; set; } = versions;
 
     public List<VersionGroup> VersionGroups { get; set; } = versiongroups;
 
-    public Knowledgebase GetKnowledebaseFromDatabase(Serializer filemodel)
+    public Database GetDatabaseFromSerializer(Serializer serializer)
     {
-        var Types = filemodel.Types.Select(t => new ElementalType { ID = t.ID, Name = t.Name, DamageRelations = [] })
+        var VersionGroups = new List<VersionGroup>();
+
+        foreach (var vg in serializer.VersionGroups)
+        {
+            VersionGroups.Add(new VersionGroup
+            {
+                ID = vg.ID,
+                Order = vg.Order,
+            });
+        }
+
+        var Versions = new List<Version>();
+
+        foreach (var ver in serializer.Versions)
+        {
+            Versions.Add(new Version
+            {
+                ID = ver.ID,
+                InVersionGroup = VersionGroups.FirstOrDefault(vg => vg.ID == ver.InVersionGroupID),
+                Name = ver.Name
+            });
+        }
+
+        var Types = serializer.Types.Select(t => new ElementalType
+            {
+                ID = t.ID, Name = t.Name, DamageRelations = [],
+                IntroducedIn = VersionGroups.FirstOrDefault(vg => vg.ID == t.IntroducedInVersionGroupID)
+            })
             .ToList();
 
         foreach (var type in Types)
-        foreach (var dr in filemodel.DamageRelations.Where(e => e.DefenderID == type.ID))
+        foreach (var dr in serializer.DamageRelations.Where(e => e.DefenderID == type.ID))
             type.DamageRelations.Add((Types.FirstOrDefault(e => e.ID == dr.DefenderID), dr.ProzentualMultiplier)!);
 
-        var DamageClasses = filemodel.DamageClasses.Select(d => new DamageClass { ID = d.ID, Name = d.Name }).ToList();
+        var DamageClasses = serializer.DamageClasses.Select(d => new DamageClass { ID = d.ID, Name = d.Name }).ToList();
 
-        var MoveEffects = filemodel.MoveEffects.Select(effect => new Effect
+        var MoveEffects = serializer.MoveEffects.Select(effect => new Effect
         {
             ID = effect.ID, Description = effect.Description
         }).ToList();
 
-        var Moves = filemodel.Moves.Select(attack => new Move
+        var Moves = serializer.Moves.Select(attack => new Move
         {
             ID = attack.ID, Name = attack.Name, Effect = MoveEffects.FirstOrDefault(e => e.ID == attack.EffectID),
             Power = attack.Power, PP = attack.PP, Accuracy = attack.Accuracy, Priority = attack.Priority,
             EffectChance = attack.EffectChance,
-            DamageClass = DamageClasses.FirstOrDefault(dc => dc.ID == attack.DamageClassID)
+            DamageClass = DamageClasses.FirstOrDefault(dc => dc.ID == attack.DamageClassID),
+            IntroducedIn = VersionGroups.FirstOrDefault(vg => vg.ID == attack.IntroducedInVersionGroupID),
+            Type = Types.FirstOrDefault(t => t.ID == attack.TypeID)
         }).ToList();
 
-        var AbilityEffects = filemodel.AbilityEffects.Select(effect => new Effect
+        var AbilityEffects = serializer.AbilityEffects.Select(effect => new Effect
         {
             ID = effect.ID, Description = effect.Description
         }).ToList();
 
 
-        var Abilities = filemodel.Abilities.Select(ability => new Ability
+        var Abilities = serializer.Abilities.Select(ability => new Ability
         {
-            ID = ability.ID, Name = ability.Name, Effect = AbilityEffects.FirstOrDefault(e => e.ID == ability.EffectID)
+            ID = ability.ID, Name = ability.Name, Effect = AbilityEffects.FirstOrDefault(e => e.ID == ability.EffectID),
+            IntroducedIn = VersionGroups.FirstOrDefault(vg => vg.ID == ability.IntroducedInVersionGroupID)
         }).ToList();
 
 
         var Pokemon = new List<Pokemon>();
 
-        foreach (var pkmn in filemodel.Pokemon)
+        foreach (var pkmn in serializer.Pokemon)
         {
             var Learnset = new List<PokemonAttack>();
-            foreach (var ls in filemodel.Learnsets.FindAll(ls => ls.PokemonID == pkmn.ID))
+            foreach (var ls in serializer.Learnsets.FindAll(ls => ls.PokemonID == pkmn.ID))
                 Learnset.Add(new PokemonAttack
                 {
                     Move = this.Moves.FirstOrDefault(e => e.ID == ls.AttackID)!,
@@ -81,7 +111,7 @@ public class Knowledgebase(
                     TriggerDetails = ls.TriggerDetails
                 });
 
-            List<(Ability Ability, bool isHidden)> AbilityPokemon = filemodel.PokemonAbility
+            List<(Ability Ability, bool isHidden)> AbilityPokemon = serializer.PokemonAbility
                 .FindAll(a => a.PokemonID == pkmn.ID).Select(a =>
                     (Abilities.FirstOrDefault(an => an.ID == a.AbilityID), isHidden: a.IsHidden)).ToList()!;
 
@@ -93,6 +123,9 @@ public class Knowledgebase(
                 FormName = pkmn.FormName,
                 Abilities = AbilityPokemon,
                 Learnset = Learnset,
+                PrimaryType = types.FirstOrDefault(t => t.ID == pkmn.PrimaryTypeID),
+                SecundaryType = types.FirstOrDefault(t => t.ID == pkmn.SecundaryTypeID),
+                IntroducedIn = VersionGroups.FirstOrDefault(vg => vg.ID == pkmn.IntroducedInVersionGroupID),
                 Stats = new StatBlock
                 {
                     Attack = pkmn.Stats.Attack, SpecialAttack = pkmn.Stats.SpecialAttack, Defense = pkmn.Stats.Defense,
@@ -101,22 +134,56 @@ public class Knowledgebase(
             });
         }
 
-        foreach (var mon in filemodel.VisualOnlyPokemon)
+        foreach (var mon in serializer.VisualOnlyPokemon)
         {
             var basedOn = Pokemon.FirstOrDefault(m => m.ID == mon.basedOnPokemonID);
             Pokemon.Add(new Pokemon
             {
                 ID = mon.ID, Name = mon.Name, FormName = mon.FormName, Abilities = basedOn.Abilities,
-                Stats = basedOn.Stats, Learnset = basedOn.Learnset
+                Stats = basedOn.Stats, Learnset = basedOn.Learnset,
+                IntroducedIn = VersionGroups.FirstOrDefault(vg => vg.ID == mon.IntroducedInVersionGroupID)
             });
         }
 
-        return new Knowledgebase(Pokemon, Moves, Abilities, Types, DamageClasses, MoveEffects, AbilityEffects);
+        return new Database(Pokemon, Moves, Abilities, Types, DamageClasses, MoveEffects, AbilityEffects,
+            versiongroups, versions);
     }
 
-    public async Task<Knowledgebase> GetDatabaseFromPokeAPIWithoutEffects(string lang)
+    public async Task<Database> GetDatabaseFromPokeAPIWithoutEffects(string lang)
     {
         var apiclient = new PokeApiClient();
+
+        var VersionGroups = new List<VersionGroup>();
+        var Versions = new List<Version>();
+
+
+        await foreach (var vg in apiclient.GetAllNamedResourcesAsync<PokeApiNet.VersionGroup>())
+        {
+            var ApiVersionGroup = await apiclient.GetResourceAsync(vg);
+            VersionGroups.Add(new VersionGroup()
+            {
+                ID = ApiVersionGroup.Name,
+                Order = ApiVersionGroup.Order,
+            });
+        }
+        
+        Console.WriteLine("Done with VersionGroups");
+
+
+
+        await foreach (var ver in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Version>())
+        {
+            var ApiGameVersion = await apiclient.GetResourceAsync(ver);
+            var name = ApiGameVersion.Names.Where(l => l.Name == lang).FirstOrDefault();
+            Versions.Add(new Version
+            {
+                ID = ApiGameVersion.Name, Name = name == null ? "" : name.Name,
+                InVersionGroup = VersionGroups.FirstOrDefault(vg => vg.ID == ApiGameVersion.VersionGroup.Name)
+            });
+        }
+        
+        Console.WriteLine("Done with Versions");
+
 
         var Types = new List<ElementalType>();
 
@@ -133,9 +200,10 @@ public class Knowledgebase(
                 }
             );
         }
+
         Console.WriteLine("Done with Types");
 
-        
+
         foreach (var Type in Types)
         {
             var ApiType = await apiclient.GetResourceAsync<Type>(Type.ID);
@@ -155,7 +223,7 @@ public class Knowledgebase(
                 if (!Type.DamageRelations.Any(e => e.DefendingType == RelationType))
                     Type.DamageRelations.Add((RelationType, 100));
         }
-        
+
         Console.WriteLine("Done with TypeRelations");
 
 
@@ -220,15 +288,14 @@ public class Knowledgebase(
                 Effect = Effect
             });
         }
-        Console.WriteLine("Done with Moves");
 
+        Console.WriteLine("Done with Moves");
 
 
         var Abilities = new List<Ability>();
 
         await foreach (var a in apiclient.GetAllNamedResourcesAsync<PokeApiNet.Ability>())
         {
-
             var API_abilities = await apiclient.GetResourceAsync(a);
             var Name = API_abilities.Names.FirstOrDefault(n => n.Language.Name == lang);
             Abilities.Add(new Ability
@@ -238,25 +305,35 @@ public class Knowledgebase(
                 Effect = null
             });
         }
+
         Console.WriteLine("Done with Abilities");
 
         var Pokemon = new List<Pokemon>();
 
+        int i = 0;
         await foreach (var p in apiclient.GetAllNamedResourcesAsync<PokeApiNet.PokemonForm>())
         {
-
+            i++;
+            Console.WriteLine($"{p.Name} {i}");
             var API_Form = await apiclient.GetResourceAsync(p);
             var API_pokemon = await apiclient.GetResourceAsync(API_Form.Pokemon);
             var API_Species = await apiclient.GetResourceAsync(API_pokemon.Species);
-            var Name = API_Form.Names.FirstOrDefault(n => n.Language.Name == lang);
+            var Name = API_Species.Names.FirstOrDefault(n => n.Language.Name == lang);
             if (Name == null)
             {
                 Name = API_Species.Names.FirstOrDefault(n => n.Language.Name == lang);
             }
+
             var FormName = API_Form.FormNames.FirstOrDefault(n => n.Language.Name == lang);
+            var PrimaryType = Types.FirstOrDefault(tp => tp.ID == API_pokemon.Types[0].Type.Name);
+            var SecundaryType = API_pokemon.Types.Count > 1
+                ? Types.FirstOrDefault(tp => tp.ID == API_pokemon.Types[1].Type.Name)
+                : null;
+
+
             var mon = new Pokemon
             {
-                ID = API_pokemon.Name,
+                ID = API_Form.Name,
                 Name = Name == null
                     ? ""
                     : Name.Name,
@@ -272,7 +349,9 @@ public class Knowledgebase(
                     SpecialAttack = API_pokemon.Stats[3].BaseStat,
                     SpecialDefense = API_pokemon.Stats[4].BaseStat,
                     Speed = API_pokemon.Stats[5].BaseStat
-                }
+                },
+                PrimaryType = PrimaryType,
+                SecundaryType = SecundaryType
             };
 
             List<(Ability Ability, bool IsHidden)> AbilitiesMon = [];
@@ -289,6 +368,8 @@ public class Knowledgebase(
             foreach (var m in API_pokemon.Moves)
             foreach (var vg in m.VersionGroupDetails)
             {
+                var Versiongroup = VersionGroups.FirstOrDefault(verg => verg.ID == vg.VersionGroup.Name);
+                Console.WriteLine($"{Versiongroup.ID}");
                 var how = vg.MoveLearnMethod.Name;
                 var move = Moves.FirstOrDefault(om => om.ID == m.Move.Name);
                 var details = "";
@@ -299,15 +380,15 @@ public class Knowledgebase(
                 {
                     Move = move,
                     Trigger = how,
-                    TriggerDetails = details
+                    TriggerDetails = details,
+                    AppliesTo = Versiongroup
                 });
             }
 
             mon.Learnset = Learnset;
-           Pokemon.Add(mon);
-           
+            Pokemon.Add(mon);
         }
-        
+
         Console.WriteLine("Done with Mons");
 
 
@@ -315,7 +396,7 @@ public class Knowledgebase(
         GC.WaitForPendingFinalizers();
 
 
-        return new Knowledgebase(Pokemon, Moves, Abilities, Types, DamageClasses, new List<Effect>(),
-            new List<Effect>());
+        return new Database(Pokemon, Moves, Abilities, Types, DamageClasses, new List<Effect>(),
+            new List<Effect>(), VersionGroups, Versions);
     }
 }

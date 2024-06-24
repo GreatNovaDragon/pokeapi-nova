@@ -4,7 +4,7 @@ using SimplePokemonAPI.Models;
 using SimplePokemonAPI.Serializers;
 
 var csv = new CSV_Serializer();
-var knowledgebase = await new Knowledgebase().GetDatabaseFromPokeAPIWithoutEffects("en");
+var knowledgebase = await new Database().GetDatabaseFromPokeAPIWithoutEffects("en");
 
 foreach (var item in knowledgebase.Pokemon)
 {

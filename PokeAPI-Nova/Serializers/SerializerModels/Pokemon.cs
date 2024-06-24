@@ -6,6 +6,10 @@ public class Pokemon
     public string Name { get; set; }
     public string FormName { get; set; }
     public StatBlock Stats { get; set; }
+
+    public string? PrimaryTypeID { get; set; }
+    public string? SecundaryTypeID { get; set; }
+    public string IntroducedInVersionGroupID { get; set; }
 }
 
 public class VisualOnlyPokemon
@@ -13,6 +17,8 @@ public class VisualOnlyPokemon
     public string ID { get; set; }
     public string Name { get; set; }
     public string FormName { get; set; }
+
+    public string IntroducedInVersionGroupID { get; set; }
 
     public string basedOnPokemonID { get; set; }
 }
@@ -40,6 +46,7 @@ public class Ability
     public string ID { get; set; }
     public string Name { get; set; }
     public string? EffectID { get; set; }
+    public string? IntroducedInVersionGroupID { get; set; }
 }
 
 public class PokemonAttack
@@ -49,5 +56,6 @@ public class PokemonAttack
     public string Trigger { get; set; }
     public string TriggerDetails { get; set; }
     
-    
+    public string AppliesToVersionGroupID { get; set; }
+
 }
